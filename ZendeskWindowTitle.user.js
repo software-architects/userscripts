@@ -24,7 +24,6 @@ function changeTitle() {
 		else
 			errorCounter++;
 	}
-   
     if (errorCounter >= tabTextElements.length)
 		error = "software architects - Agent";
 	if (error == "") {
@@ -33,7 +32,7 @@ function changeTitle() {
 
 		var spanArray = document.getElementsByTagName("span");
 
-		var filteredSpanArray = "";
+		var filteredSpanString = "";
         var divArray = document.getElementsByTagName("div");
         var filteredDivArray = new Array();
         for (var i = 0; i < divArray.length; i++) {
@@ -43,20 +42,20 @@ function changeTitle() {
         
 		for (var i = 0; i < spanArray.length; i++) {
 			if ((spanArray[i].className == "ember-view btn" || spanArray[i].className == "ember-view btn active") && spanArray[i].parentNode.parentNode.className == "pane left" && spanArray[i].parentNode.parentNode.parentNode.parentNode.parentNode.id == filteredDivArray[emberViewTabCounter].id)
-				filteredSpanArray += spanArray[i].innerHTML.toString();
+				filteredSpanString += spanArray[i].innerHTML.toString();
 		}
-		var helperString3 = filteredSpanArray.split('</script>');
+		var helperString3 = filteredSpanString.split('</script>');
         
 		var comp = helperString3[1].split('<script');
 		var empName = helperString3[3].split('<script');
+        var tickId = helperString3[7].split('<script');
 	
 		var company = comp[0];
 		var employeeName = empName[0];
-
-		var ticketId = window.location.href.split("/");
-		var titleString = company + " - "  + employeeName + " - " + helperString2[0] + " - " + "#" + ticketId[ticketId.length - 1];
-		document.title = titleString; 
-
+        var ticket = tickId[0].split("#");
+        var ticketId = ticket[1];
+		
+		var titleString = company + " - "  + employeeName + " - " + helperString2[0] + " - " + "#" + ticketId;
 		document.title = titleString; 
 	}
 	else
