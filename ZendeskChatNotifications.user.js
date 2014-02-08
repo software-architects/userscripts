@@ -54,13 +54,18 @@ function findChat() {
         // if permissions were not yet granted provide button
         if (Notification.permission !== "granted" && Notification.permission !== 'denied') {
 			console.debug('ZendeskChat: notification permission not yet granted - offering request');
-            $('#chat-control').click(function() {
+
+            var button = $('<a class="attachment">enable notifications</a>');
+            $('#chat-header').append(button);
+            button.click(function() {
 				console.debug('ZendeskChat: requesting notification permission');
                 Notification.requestPermission(function (permission) {
 					console.debug('ZendeskChat: notification permission request handled: ' + permission);
             		if(!('permission' in Notification)) {
                 		Notification.permission = permission;
             		}
+                    
+                    button.remove();
                 });
             });
         }
