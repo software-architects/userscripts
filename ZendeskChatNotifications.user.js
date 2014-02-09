@@ -21,7 +21,14 @@ function processChatsAdded(event) {
                 var subject = chatsDiv.find('div.chat-subject').text();
                 if (username && subject) {
 					console.debug('ZendeskChat: new chat request found - notifying');
-                    var notification = new Notification(username + ": " + subject);
+                    var title = "Chat request from: " + username;
+                    var options = {
+                        body : subject,
+                        icon : 'http://www.zendesk.com/favicon.ico'
+                    };
+                    
+                    var notification = new Notification(title, options);
+                    notification.onclick = function(x) { window.focus(); };
                     currentNotifications.push(value);
                     $(value).on("remove", function () {
                         console.debug('ZendeskChat: chat request ended - removing notification');
