@@ -4,7 +4,7 @@
 // @description Adds desktop notifications to zendesk chat.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
-// @version     1.0
+// @version     1.1
 // @copyright   2014 software architects gmbh
 // ==/UserScript==
 
