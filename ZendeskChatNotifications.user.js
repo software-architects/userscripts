@@ -5,7 +5,7 @@
 // @match       https://*.zendesk.com/agent/*
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.2
+// @version     1.3
 // @copyright   2014 software architects gmbh
 // ==/UserScript==
 
@@ -68,12 +68,6 @@ function processChatsAdded(event) {
 
 // try to find the main chat dom element
 function findChat() {
-    if (typeof $ === 'undefined') {
-        console.debug('ZendeskChat: jQuery not (yet) available');
-        window.setTimeout(function () { findChat(); }, 1000);
-        return;
-    }
-    
     console.debug('ZendeskChat: looking for incoming-chats');
     chatsDiv = $('#incoming-chats');
     if (chatsDiv.length === 0) {
