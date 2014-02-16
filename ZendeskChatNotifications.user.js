@@ -68,6 +68,13 @@ function processChatsAdded(event) {
 
 // try to find the main chat dom element
 function findChat() {
+    if (typeof $ === 'undefined') {
+        console.debug('ZendeskChat: jQuery not (yet) available');
+        window.setTimeout(function () { findChat(); }, 1000);
+        return;
+    }
+    
+    console.debug('ZendeskChat: looking for incoming-chats');
     chatsDiv = $('#incoming-chats');
     if (chatsDiv.length === 0) {
         // not found -> DOM not fully built -> retry in due time
@@ -89,10 +96,9 @@ function findChat() {
         }
         
         // add notify checkbox
-        var notifications = $('<input type="checkbox">notify</input>');
+        var notifications = $('<input type="checkbox" style="margin-left:10px;" />');
         enableDesktop = GM_getValue('desktop', false);
         notifications.prop('checked', enableDesktop);
-        $('#chat-header').append(notifications);
         notifications.change(function() {
             enableDesktop = $(this).is(':checked');
             GM_setValue('desktop', enableDesktop);
@@ -108,14 +114,21 @@ function findChat() {
         });
         
         // add loop checkbox
-        var loop = $('<input type="checkbox">loop</input>');
+        var loop = $('<input type="checkbox" style="margin-left:10px;" />');
         enableLoop = GM_getValue('loop', false);
         loop.prop('checked', enableLoop);
-        $('#chat-header').append(loop);
         loop.change(function() {
             enableLoop = $(this).is(':checked');
             GM_setValue('loop', enableLoop);
         });
+
+        var span = $('<span class="dialer-title" style="font-weight:normal;vertical-align:top;" />');
+        span.append(notifications);
+        span.append(document.createTextNode('notify'));
+        span.append(loop);
+        span.append(document.createTextNode('loop'));
+        $('#chat-header').append(span);
+
     }
 }
 
