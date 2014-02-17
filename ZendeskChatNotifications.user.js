@@ -3,9 +3,8 @@
 // @namespace   http://www.software-architects.at
 // @description Adds desktop notifications to zendesk chat.
 // @match       https://*.zendesk.com/agent/*
-// @grant       GM_getValue
-// @grant       GM_setValue
-// @version     1.3
+// @grant       none
+// @version     1.4
 // @copyright   2014 software architects gmbh
 // ==/UserScript==
 
@@ -15,8 +14,27 @@ var loopTimer = null;
 var enableDesktop = false;
 var enableLoop = false;
 
+function getStorageOrDefault(key, defaultValue) {
+    var text = localStorage.getItem(key);
+    console.debug('ZendeskChat: getStorage ' + text + ' (' + typeof text + ')');
+    if (text === null) {
+        console.debug('ZendeskChat: getStorage returning default ' + defaultValue + ' (' + typeof defaultValue + ')');
+        return defaultValue;
+    } else {
+        var val = JSON.parse(text);
+        console.debug('ZendeskChat: getStorage returning ' + val + ' (' + typeof val + ')');
+        return val;
+    }
+}
+
+function setStorage(key, val) {
+    var text = JSON.stringify(val);
+    console.debug('ZendeskChat: setStorage ' + val + ' (' + typeof val + ') as ' + text + ' (' + typeof text + ')');
+    localStorage.setItem(key, text);
+}
+
 function processChatsAdded(event) {
-    if (enableDesktop && Notification.permission === "granted") {
+    if ((enableDesktop && Notification.permission === "granted") || enableLoop) {
         // find invite nodes
         var invites = chatsDiv.find('.ember-view.invite');
         $.each(invites, function( index, value ) {
@@ -35,8 +53,10 @@ function processChatsAdded(event) {
                         icon : 'http://www.zendesk.com/favicon.ico'
                     };
                     
-                    var notification = new Notification(title, options);
-                    notification.onclick = function(x) { window.focus(); };
+                    if (enableDesktop) {
+                        var notification = new Notification(title, options);
+                        notification.onclick = function(x) { window.focus(); };
+                    }
                     currentNotifications.push(value);
                     
                     // sound looping
@@ -84,18 +104,19 @@ function findChat() {
         
         chatsDiv.on('DOMNodeInserted', processChatsAdded);
         
-        // for pre-1.2 scripts assume that a granted permission means notify
-        if (typeof GM_getValue('desktop') === 'undefined' && Notification.permission === "granted") {
-            GM_setValue('desktop', true);
+        // for pre-1.4 scripts assume that a granted permission means notify
+        if (localStorage.getItem('ChatNotifications.Desktop') === null && Notification.permission === "granted") {
+            console.debug('ZendeskChat: setting legacy desktop notification');
+            setStorage('ChatNotifications.Desktop', true);
         }
         
         // add notify checkbox
         var notifications = $('<input type="checkbox" style="margin-left:10px;" />');
-        enableDesktop = GM_getValue('desktop', false);
+        enableDesktop = getStorageOrDefault('ChatNotifications.Desktop', false);
         notifications.prop('checked', enableDesktop);
         notifications.change(function() {
             enableDesktop = $(this).is(':checked');
-            GM_setValue('desktop', enableDesktop);
+            setStorage('ChatNotifications.Desktop', enableDesktop);
             if (enableDesktop && Notification.permission !== "granted" && Notification.permission !== 'denied') {
                 console.debug('ZendeskChat: requesting notification permission');
                 Notification.requestPermission(function (permission) {
@@ -109,11 +130,11 @@ function findChat() {
         
         // add loop checkbox
         var loop = $('<input type="checkbox" style="margin-left:10px;" />');
-        enableLoop = GM_getValue('loop', false);
+        enableLoop = getStorageOrDefault('ChatNotifications.Loop', false);
         loop.prop('checked', enableLoop);
         loop.change(function() {
             enableLoop = $(this).is(':checked');
-            GM_setValue('loop', enableLoop);
+            setStorage('ChatNotifications.Loop', enableLoop);
         });
 
         var span = $('<span class="dialer-title" style="font-weight:normal;vertical-align:top;" />');
