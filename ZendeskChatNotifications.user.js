@@ -4,7 +4,7 @@
 // @description Adds desktop notifications to zendesk chat.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
-// @version     1.4
+// @version     1.5
 // @copyright   2014 software architects gmbh
 // ==/UserScript==
 
@@ -72,7 +72,7 @@ function processChatsAdded(event) {
                     $(value).on("remove", function () {
                         console.debug('ZendeskChat: chat request ended');
                         currentNotifications.splice( $.inArray(this, currentNotifications), 1 );
-                        if (currentNotifications.length === 0) {
+                        if (currentNotifications.length === 0 && loopTimer !== null) {
                             console.debug('ZendeskChat: ending sound loop');
                             window.clearInterval(loopTimer);
                             loopTimer = null;
