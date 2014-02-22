@@ -4,61 +4,42 @@
 // @description Improves the browser window title when using zendesk agent by adding info like ticket id.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
-// @version     1.1
-// @copyright   2013 software architects gmbh
+// @version     1.2
+// @copyright   2014 software architects gmbh
 // ==/UserScript==
 
+var currentSection = null;
+var isSectionPresent = false;
+var initialWindowTitle = null;
 
-setInterval(function () { changeTitle()}, 1000);
-
-function changeTitle() {
-	var tabTextElements = document.getElementsByClassName("tab_text");
-	var subject = "";
-	var error = "";
-	var errorCounter = 0;
-    var emberViewTabCounter = 0;
-	for (var i = 0; i < tabTextElements.length; i++) {
-        if (tabTextElements[i].parentNode.parentNode.className.indexOf("selected") != -1) {
-        	subject = tabTextElements[i].innerHTML.toString();
-            emberViewTabCounter = i;
+function updateWindowTitle() {
+    "use strict";
+    if (!isSectionPresent) {
+        if (Zd.hasOwnProperty('section')) {
+            isSectionPresent = true;
+            initialWindowTitle = window.document.title;
+            console.debug('ZendeskWindowTitle: section present');
+        } else {
+            console.debug('ZendeskWindowTitle: section still missing');
+            return;
         }
-		else
-			errorCounter++;
-	}
-    if (errorCounter >= tabTextElements.length)
-		error = "software architects - Agent";
-	if (error == "") {
-		var helperString1 = subject.split('</script>');
-		var helperString2 = helperString1[1].split('<script');
+    }
 
-		var spanArray = document.getElementsByTagName("span");
+    if (Zd.section !== currentSection) {
+        currentSection = Zd.section;
 
-		var filteredSpanString = "";
-        var divArray = document.getElementsByTagName("div");
-        var filteredDivArray = new Array();
-        for (var i = 0; i < divArray.length; i++) {
-         	if (divArray[i].className == "ember-view workspace")
-                	filteredDivArray.push(divArray[i]);
+        if (!currentSection) {
+            console.debug('ZendeskWindowTitle: empty section');
+            window.document.title = initialWindowTitle;
+        } else if (currentSection.indexOf('#/tickets/') === 0) {
+            var id = currentSection.substring(10);
+            console.debug('ZendeskWindowTitle: focused ticket: ' + id);
+            window.document.title = initialWindowTitle + ' - #' + id;
+        } else {
+            console.debug('ZendeskWindowTitle: focused: ' + Zd.section);
+            window.document.title = initialWindowTitle + ' - ' + currentSection;
         }
-        
-		for (var i = 0; i < spanArray.length; i++) {
-			if ((spanArray[i].className == "ember-view btn" || spanArray[i].className == "ember-view btn active") && spanArray[i].parentNode.parentNode.className == "pane left" && spanArray[i].parentNode.parentNode.parentNode.parentNode.parentNode.id == filteredDivArray[emberViewTabCounter].id)
-				filteredSpanString += spanArray[i].innerHTML.toString();
-		}
-		var helperString3 = filteredSpanString.split('</script>');
-        
-		var comp = helperString3[1].split('<script');
-		var empName = helperString3[3].split('<script');
-        var tickId = helperString3[7].split('<script');
-	
-		var company = comp[0];
-		var employeeName = empName[0];
-        var ticket = tickId[0].split("#");
-        var ticketId = ticket[1];
-		
-		var titleString = company + " - "  + employeeName + " - " + helperString2[0] + " - " + "#" + ticketId;
-		document.title = titleString; 
-	}
-	else
-		document.title = error;
+    }
 }
+
+setInterval(updateWindowTitle, 1000);
