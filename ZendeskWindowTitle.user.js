@@ -12,6 +12,11 @@ var currentSection = null;
 var isSectionPresent = false;
 var initialWindowTitle = null;
 
+function getTicketInformation(id) {
+    "use strict";
+    return '#' + id;
+}
+
 function updateWindowTitle() {
     "use strict";
     if (!isSectionPresent) {
@@ -34,7 +39,7 @@ function updateWindowTitle() {
         } else if (currentSection.indexOf('#/tickets/') === 0) {
             var id = currentSection.substring(10);
             console.debug('ZendeskWindowTitle: focused ticket: ' + id);
-            window.document.title = initialWindowTitle + ' - #' + id;
+            window.document.title = initialWindowTitle + ' - ' + getTicketInformation(id);
         } else {
             console.debug('ZendeskWindowTitle: focused: ' + Zd.section);
             window.document.title = initialWindowTitle + ' - ' + currentSection;
