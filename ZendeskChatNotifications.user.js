@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Zendesk Chat Notifications
 // @namespace   http://www.software-architects.at
-// @description Adds desktop notifications to zendesk chat.
+// @description Adds desktop notifications and sound looping to Zendesk chat.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
 // @version     1.5

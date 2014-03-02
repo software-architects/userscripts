@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Zendesk Window Title
 // @namespace   http://www.software-architects.at
-// @description Improves the browser window title when using zendesk agent by adding info like ticket id.
+// @description Improves the browser window title when using Zendesk agent by adding info like ticket id.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
 // @version     1.3
