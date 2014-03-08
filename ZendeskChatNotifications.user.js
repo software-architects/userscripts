@@ -10,6 +10,7 @@
 
 var currentNotifications = [];
 var chatsDiv = null;
+var settingsDiv = null;
 var loopTimer = null;
 var enableDesktop = false;
 var enableLoop = false;
@@ -88,7 +89,7 @@ function processChatsAdded(event) {
 }
 
 function buildSettingsDiv() {
-    var div = $('<div class="enable_checkbox" />');
+    var div = $('<div class="enable_checkbox" id="ZendeskChatNotificationsSettings" />');
     
     // add notify checkbox
     var notifications = $('<input type="checkbox" style="margin-left:10px;" />');
@@ -144,9 +145,7 @@ function buildSettingsDiv() {
     label.append('<span>Always-online</span>');
     div.append(label);
     div.append('<br />');
-    
-    //$('#chat-header').append(span);
-    $('#chat-section').append(div);
+
     return div;
 }
 
@@ -174,10 +173,23 @@ function findChat() {
             setStorage('ChatNotifications.Desktop', true);
         }
         
-		buildSettingsDiv();
-
-        //var button = $('#chat-header').find('button.ember-view.availability');
-        //button.click();
+        if ($('#ZendeskChatNotificationsSettingsButton').length === 0) {
+            var settingsButton = $('<a id="ZendeskChatNotificationsSettingsButton" class="admin toolbar_link">Chat Settings</a>');
+            $('#chat-header').append(settingsButton);
+            settingsButton.click(function () {
+                console.debug('ZendeskChat: toggling settings');
+                if (settingsDiv === null) {
+                    settingsDiv = buildSettingsDiv();
+                }
+                
+                var settingsInDom = $('#ZendeskChatNotificationsSettings');
+                if (settingsInDom.length === 0) {
+                    $('#chat-section').append(settingsDiv)
+                } else {
+                    settingsInDom.remove();
+                }
+        	});
+        }       
     }
 }
 
