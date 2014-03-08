@@ -15,6 +15,8 @@ var loopTimer = null;
 var enableDesktop = false;
 var enableLoop = false;
 var alwaysOn = false;
+var alwaysOnTimer = null;
+var onlineButton = null;
 
 function getStorageOrDefault(key, defaultValue) {
     var text = localStorage.getItem(key);
@@ -88,6 +90,29 @@ function processChatsAdded(event) {
     }
 }
 
+function setAlwaysOn(value) {
+    console.debug('ZendeskChat: setAlwaysOn' + value);
+    if (value === true) {
+        if (alwaysOnTimer === null) {
+            alwaysOnTimer = window.setInterval(function () {
+                if (onlineButton === null) {
+                    onlineButton = $('#chat-header').find('button.ember-view.availability');
+                    console.debug('ZendeskChat: setAlwaysOn discovered button ' + onlineButton)
+                }
+                
+                
+            }, 5000);
+            console.debug('ZendeskChat: setAlwaysOn started timer');
+        }
+    } else {
+        if (alwaysOnTimer !== null) {
+            window.clearInterval(alwaysOnTimer);
+            alwaysOnTimer = null;
+            console.debug('ZendeskChat: setAlwaysOn removed timer');
+        }
+    }
+}
+
 function buildSettingsDiv() {
     var div = $('<div class="enable_checkbox" id="ZendeskChatNotificationsSettings" />');
     
@@ -122,6 +147,7 @@ function buildSettingsDiv() {
     aon.change(function() {
         alwaysOn = $(this).is(':checked');
         setStorage('ChatNotifications.AlwaysOn', alwaysOn);
+        setAlwaysOn(alwaysOn);
     });
     
     div.append('<br />');
@@ -174,6 +200,7 @@ function findChat() {
         enableDesktop = getStorageOrDefault('ChatNotifications.Desktop', false);
         enableLoop = getStorageOrDefault('ChatNotifications.Loop', false);
         alwaysOn = getStorageOrDefault('ChatNotifications.AlwaysOn', false);
+        setAlwaysOn(alwaysOn);
         
         // add settings button
         if ($('#ZendeskChatNotificationsSettingsButton').length === 0) {
