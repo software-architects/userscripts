@@ -103,7 +103,7 @@ function ensureOnlineChat() {
 }
 
 function setAlwaysOn(value) {
-    console.debug('ZendeskChat: setAlwaysOn' + value);
+    console.debug('ZendeskChat: setAlwaysOn ' + value);
     if (value === true) {
         if (alwaysOnTimer === null) {
             alwaysOnTimer = window.setInterval(ensureOnlineChat, 5000);
