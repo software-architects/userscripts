@@ -87,6 +87,69 @@ function processChatsAdded(event) {
     }
 }
 
+function buildSettingsDiv() {
+    var div = $('<div class="enable_checkbox" />');
+    
+    // add notify checkbox
+    var notifications = $('<input type="checkbox" style="margin-left:10px;" />');
+    enableDesktop = getStorageOrDefault('ChatNotifications.Desktop', false);
+    notifications.prop('checked', enableDesktop);
+    notifications.change(function() {
+        enableDesktop = $(this).is(':checked');
+        setStorage('ChatNotifications.Desktop', enableDesktop);
+        if (enableDesktop && Notification.permission !== "granted" && Notification.permission !== 'denied') {
+            console.debug('ZendeskChat: requesting notification permission');
+            Notification.requestPermission(function (permission) {
+                console.debug('ZendeskChat: permission: ' + permission);
+                if(!('permission' in Notification)) {
+                    Notification.permission = permission;
+                }
+            });
+        }
+    });
+    
+    // add loop checkbox
+    var loop = $('<input type="checkbox" style="margin-left:10px;" />');
+    enableLoop = getStorageOrDefault('ChatNotifications.Loop', false);
+    loop.prop('checked', enableLoop);
+    loop.change(function() {
+        enableLoop = $(this).is(':checked');
+        setStorage('ChatNotifications.Loop', enableLoop);
+    });
+    
+    // add a-on checkbox
+    var aon = $('<input type="checkbox" style="margin-left:10px;" />');
+    alwaysOn = getStorageOrDefault('ChatNotifications.AlwaysOn', false);
+    aon.prop('checked', alwaysOn);
+    aon.change(function() {
+        alwaysOn = $(this).is(':checked');
+        setStorage('ChatNotifications.AlwaysOn', alwaysOn);
+    });
+    
+    //var span = $('<span class="dialer-title" style="font-weight:normal;vertical-align:top;" />');
+    var label = $('<label class="checkbox" />');
+    label.append(notifications);
+    label.append('<span>Desktop notifications</span>');
+    div.append(label);
+    div.append('<br />');
+    
+    label = $('<label class="checkbox" />');
+    label.append(loop);
+    label.append('<span>Notification sound looping</span>');
+    div.append(label);
+    div.append('<br />');
+    
+    label = $('<label class="checkbox" />');
+    label.append(aon);
+    label.append('<span>Always-online</span>');
+    div.append(label);
+    div.append('<br />');
+    
+    //$('#chat-header').append(span);
+    $('#chat-section').append(div);
+    return div;
+}
+
 // try to find the main chat dom element
 function findChat() {
     console.debug('ZendeskChat: looking for incoming-chats');
@@ -111,47 +174,7 @@ function findChat() {
             setStorage('ChatNotifications.Desktop', true);
         }
         
-        // add notify checkbox
-        var notifications = $('<input type="checkbox" style="margin-left:10px;" title="enable desktop notifications" />');
-        enableDesktop = getStorageOrDefault('ChatNotifications.Desktop', false);
-        notifications.prop('checked', enableDesktop);
-        notifications.change(function() {
-            enableDesktop = $(this).is(':checked');
-            setStorage('ChatNotifications.Desktop', enableDesktop);
-            if (enableDesktop && Notification.permission !== "granted" && Notification.permission !== 'denied') {
-                console.debug('ZendeskChat: requesting notification permission');
-                Notification.requestPermission(function (permission) {
-                    console.debug('ZendeskChat: permission: ' + permission);
-                    if(!('permission' in Notification)) {
-                        Notification.permission = permission;
-                    }
-                });
-            }
-        });
-        
-        // add loop checkbox
-        var loop = $('<input type="checkbox" style="margin-left:10px;" title="enable notification sound looping" />');
-        enableLoop = getStorageOrDefault('ChatNotifications.Loop', false);
-        loop.prop('checked', enableLoop);
-        loop.change(function() {
-            enableLoop = $(this).is(':checked');
-            setStorage('ChatNotifications.Loop', enableLoop);
-        });
-        
-        // add a-on checkbox
-        var aon = $('<input type="checkbox" style="margin-left:10px;" title="enable always-online (connect and reconnect automatically)" />');
-        alwaysOn = getStorageOrDefault('ChatNotifications.AlwaysOn', false);
-        aon.prop('checked', alwaysOn);
-        aon.change(function() {
-            alwaysOn = $(this).is(':checked');
-            setStorage('ChatNotifications.AlwaysOn', alwaysOn);
-        });
-
-        var span = $('<span class="dialer-title" style="font-weight:normal;vertical-align:top;" />');
-        span.append(notifications);
-        span.append(loop);
-        span.append(aon);
-        $('#chat-header').append(span);
+		buildSettingsDiv();
 
         //var button = $('#chat-header').find('button.ember-view.availability');
         //button.click();
