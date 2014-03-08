@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name        Zendesk Window Title
 // @namespace   http://www.software-architects.at
-// @description Improves the browser window title when using Zendesk agent by adding info like ticket id.
+// @description Improves the browser window title when using zendesk agent by adding info like ticket id.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
-// @version     1.3
+// @version     1.4
 // @copyright   2014 software architects gmbh
 // ==/UserScript==
 
@@ -84,7 +84,10 @@ function getTicketInformation() {
 function updateWindowTitle() {
     "use strict";
     if (!isSectionPresent) {
-        if (Zd.hasOwnProperty('section')) {
+        if (window.document.title === 'Zendesk...') {
+            console.debug('ZendeskWindowTitle: dummy window title present');
+            return;
+        } else if (Zd.hasOwnProperty('section')) {
             isSectionPresent = true;
             initialWindowTitle = window.document.title;
             console.debug('ZendeskWindowTitle: section present');
@@ -120,4 +123,4 @@ function updateWindowTitle() {
     }
 }
 
-setInterval(updateWindowTitle, 1000);
+window.setInterval(updateWindowTitle, 1000);
