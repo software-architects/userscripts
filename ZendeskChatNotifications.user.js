@@ -18,7 +18,7 @@ var alwaysOn = false;
 
 function getStorageOrDefault(key, defaultValue) {
     var text = localStorage.getItem(key);
-    console.debug('ZendeskChat: getStorage ' + text + ' (' + typeof text + ')');
+    console.debug('ZendeskChat: getStorage for ' + key + ' = ' + text + ' (' + typeof text + ')');
     if (text === null) {
         console.debug('ZendeskChat: getStorage returning default ' + defaultValue + ' (' + typeof defaultValue + ')');
         return defaultValue;
@@ -31,7 +31,7 @@ function getStorageOrDefault(key, defaultValue) {
 
 function setStorage(key, val) {
     var text = JSON.stringify(val);
-    console.debug('ZendeskChat: setStorage ' + val + ' (' + typeof val + ') as ' + text + ' (' + typeof text + ')');
+    console.debug('ZendeskChat: setStorage for ' + key + ' = ' + val + ' (' + typeof val + ') as ' + text + ' (' + typeof text + ')');
     localStorage.setItem(key, text);
 }
 
@@ -93,7 +93,6 @@ function buildSettingsDiv() {
     
     // add notify checkbox
     var notifications = $('<input type="checkbox" style="margin-left:10px;" />');
-    enableDesktop = getStorageOrDefault('ChatNotifications.Desktop', false);
     notifications.prop('checked', enableDesktop);
     notifications.change(function() {
         enableDesktop = $(this).is(':checked');
@@ -111,7 +110,6 @@ function buildSettingsDiv() {
     
     // add loop checkbox
     var loop = $('<input type="checkbox" style="margin-left:10px;" />');
-    enableLoop = getStorageOrDefault('ChatNotifications.Loop', false);
     loop.prop('checked', enableLoop);
     loop.change(function() {
         enableLoop = $(this).is(':checked');
@@ -120,14 +118,13 @@ function buildSettingsDiv() {
     
     // add a-on checkbox
     var aon = $('<input type="checkbox" style="margin-left:10px;" />');
-    alwaysOn = getStorageOrDefault('ChatNotifications.AlwaysOn', false);
     aon.prop('checked', alwaysOn);
     aon.change(function() {
         alwaysOn = $(this).is(':checked');
         setStorage('ChatNotifications.AlwaysOn', alwaysOn);
     });
     
-    //var span = $('<span class="dialer-title" style="font-weight:normal;vertical-align:top;" />');
+    div.append('<br />');
     var label = $('<label class="checkbox" />');
     label.append(notifications);
     label.append('<span>Desktop notifications</span>');
@@ -173,8 +170,14 @@ function findChat() {
             setStorage('ChatNotifications.Desktop', true);
         }
         
+        // get settings
+        enableDesktop = getStorageOrDefault('ChatNotifications.Desktop', false);
+        enableLoop = getStorageOrDefault('ChatNotifications.Loop', false);
+        alwaysOn = getStorageOrDefault('ChatNotifications.AlwaysOn', false);
+        
+        // add settings button
         if ($('#ZendeskChatNotificationsSettingsButton').length === 0) {
-            var settingsButton = $('<a id="ZendeskChatNotificationsSettingsButton" class="admin toolbar_link">Chat Settings</a>');
+            var settingsButton = $('<a id="ZendeskChatNotificationsSettingsButton" class="attachment">Settings</a>');
             $('#chat-header').append(settingsButton);
             settingsButton.click(function () {
                 console.debug('ZendeskChat: toggling settings');
