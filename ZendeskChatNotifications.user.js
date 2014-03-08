@@ -120,7 +120,7 @@ function setAlwaysOn(value) {
 }
 
 function buildSettingsDiv() {
-    var div = $('<div class="enable_checkbox" id="ZendeskChatNotificationsSettings" />');
+    var div = $('<div class="enable_checkbox" id="ZendeskChatNotificationsSettings" style="padding-top:15px;float:left;" />');
     
     // add notify checkbox
     var notifications = $('<input type="checkbox" style="margin-left:10px;" />');
@@ -156,7 +156,6 @@ function buildSettingsDiv() {
         setAlwaysOn(alwaysOn);
     });
     
-    div.append('<br />');
     var label = $('<label class="checkbox" />');
     label.append(notifications);
     label.append('<span>Desktop notifications</span>');
@@ -210,8 +209,11 @@ function findChat() {
         
         // add settings button
         if ($('#ZendeskChatNotificationsSettingsButton').length === 0) {
-            var settingsButton = $('<a id="ZendeskChatNotificationsSettingsButton" class="attachment">Settings</a>');
-            $('#chat-header').append(settingsButton);
+            var settingsButton = $('<a id="ZendeskChatNotificationsSettingsButton">Settings</a>');
+            var header = $('#chat-header').children('span.dialer-title');
+            var span = $('<span style="font-weight:normal;font-size:10px;margin-left:10px;"></span>');
+            span.append(settingsButton);
+            header.append(span);
             settingsButton.click(function () {
                 console.debug('ZendeskChat: toggling settings');
                 if (settingsDiv === null) {
