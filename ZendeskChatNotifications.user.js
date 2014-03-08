@@ -90,19 +90,25 @@ function processChatsAdded(event) {
     }
 }
 
+function ensureOnlineChat() {
+    if (onlineButton === null) {
+        onlineButton = $('#chat-header').find('button.ember-view.availability');
+        console.debug('ZendeskChat: setAlwaysOn discovered button');
+    }
+    
+    if (onlineButton.hasClass('unavailable')) {
+        console.debug('ZendeskChat: setAlwaysOn chat seems offline - clicking');
+        onlineButton.click();
+    }
+}
+
 function setAlwaysOn(value) {
     console.debug('ZendeskChat: setAlwaysOn' + value);
     if (value === true) {
         if (alwaysOnTimer === null) {
-            alwaysOnTimer = window.setInterval(function () {
-                if (onlineButton === null) {
-                    onlineButton = $('#chat-header').find('button.ember-view.availability');
-                    console.debug('ZendeskChat: setAlwaysOn discovered button ' + onlineButton)
-                }
-                
-                
-            }, 5000);
+            alwaysOnTimer = window.setInterval(ensureOnlineChat, 5000);
             console.debug('ZendeskChat: setAlwaysOn started timer');
+            ensureOnlineChat();
         }
     } else {
         if (alwaysOnTimer !== null) {
