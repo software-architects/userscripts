@@ -4,8 +4,9 @@
 // @description Improves the browser window title when using zendesk agent by adding info like ticket id.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
-// @version     1.4
-// @copyright   2014 software architects gmbh
+// @version     1.5
+// @copyright   2014-2016 software architects gmbh
+// @author      Simon
 // ==/UserScript==
 
 var currentSection = null;
@@ -102,14 +103,14 @@ function updateWindowTitle() {
             currentSection = Zd.section;
             console.debug('ZendeskWindowTitle: empty section');
             window.document.title = initialWindowTitle;
-        } else if (Zd.section.indexOf('#/tickets/') === 0) {
-            var id = Zd.section.substring(10);
+        } else if (Zd.section.indexOf('tickets/') === 0) {
+            var id = Zd.section.substring(8);
             console.debug('ZendeskWindowTitle: focused ticket: ' + id);
 
             var info = getTicketInformation();
             if (info) {
                 currentSection = Zd.section;
-                window.document.title = initialWindowTitle + ' - #' + id + ' - ' + info;
+                window.document.title = initialWindowTitle + ' - ' + info;
             } else {
                 // something did not check out, ensure that we query again
                 currentSection = null;
