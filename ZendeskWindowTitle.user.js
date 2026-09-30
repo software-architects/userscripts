@@ -4,123 +4,121 @@
 // @description Improves the browser window title when using zendesk agent by adding info like ticket id.
 // @match       https://*.zendesk.com/agent/*
 // @grant       none
-// @version     1.8
-// @copyright   2014-2024 software architects gmbh
+// @version     1.9
+// @copyright   2014-2026 software architects gmbh
 // @author      Simon
 // ==/UserScript==
 
-var currentSection = null;
-var isSectionPresent = false;
-var initialWindowTitle = null;
-
-function getTitle() {
+(function () {
     "use strict";
 
-    var tabs = $("div[data-test-id='header-toolbar']");
-    if (tabs.length === 1) {
-        var selectedTabs = tabs.find("div[data-selected='true']");
-        if (selectedTabs.length === 1) {
-            var tabHeader = selectedTabs.find("div[data-test-id='header-tab-title']");
-            if (tabHeader.length === 1) {
-                return tabHeader[0].innerText;
-            }
-        } else {
-            console.debug('ZendeskWindowTitle: getTitle: selected tab not found');
+    function getTitle(id) {
+        // the tab list lives in the (react) header toolbar, the tab for the ticket is identified by its entity id
+        var tab = document.querySelector("[data-test-id='header-toolbar'] a[data-test-id='header-tab'][data-entity-id='" + id + "']");
+        if (!tab) {
+            console.debug('ZendeskWindowTitle: getTitle: tab not found');
+            return null;
         }
-    } else {
-        console.debug('ZendeskWindowTitle: getTitle: tabs not found');
+
+        var tabHeader = tab.querySelector("[data-test-id='header-tab-title']");
+        if (!tabHeader) {
+            console.debug('ZendeskWindowTitle: getTitle: tab title not found');
+            return null;
+        }
+
+        return tabHeader.innerText.trim();
     }
 
-    return null;
-}
+    function getVisibleWorkspace() {
+        // #main_panes is not unique anymore and cached workspaces are hidden via visibility/opacity, not display
+        var workspaces = document.querySelectorAll('main#main_panes div.workspace');
+        for (var i = 0; i < workspaces.length; i++) {
+            var ws = workspaces[i];
+            if (!ws.classList.contains('is-cached') && window.getComputedStyle(ws).visibility !== 'hidden') {
+                return ws;
+            }
+        }
 
-function getTicketInformation() {
-    "use strict";
+        return null;
+    }
 
-    var title = null;
-    var user = null;
-    var org = null;
+    function getTicketInformation(id) {
+        var workspace = getVisibleWorkspace();
+        if (!workspace) {
+            console.debug('ZendeskWindowTitle: getTicketInformation: workspace not found');
+            return null;
+        }
 
-    var mainPanes = $('#main_panes');
-    if (mainPanes.length === 1) {
-        var div = mainPanes.children('div.ember-view.workspace').not('[style*="none"]');
-        if (div.length === 1) {
-            var nav = div.find('nav.ember-view.btn-group');
-            if (nav.length === 1) {
-                var buttons = nav.children('span.btn');
-                if (buttons.length === 3) {
-                    user = $(buttons[1]).text().trim();
-                    if (!$(buttons[0]).hasClass('create')) {
-                        org = $(buttons[0]).text().trim();
-                    } else {
-                        console.debug('ZendeskWindowTitle: getTicketInformation: no org');
-                    }
+        var nav = workspace.querySelector("nav[aria-label='Ticket page location']");
+        if (!nav) {
+            console.debug('ZendeskWindowTitle: getTicketInformation: nav not found');
+            return null;
+        }
 
-                    title = getTitle();
-                } else {
-                    console.debug('ZendeskWindowTitle: getTicketInformation: buttons not found');
-                }
+        var userButton = nav.querySelector("[data-test-id='tabs-nav-item-users']");
+        var orgButton = nav.querySelector("[data-test-id='tabs-nav-item-organizations']");
+        var user = userButton ? userButton.textContent.trim() : null;
+        var org = orgButton ? orgButton.textContent.trim() : null;
+        var title = getTitle(id);
+
+        if (!org) {
+            console.debug('ZendeskWindowTitle: getTicketInformation: no org');
+        }
+
+        if (title && user) {
+            if (org) {
+                return title + ' - ' + user + ' - ' + org;
             } else {
-                console.debug('ZendeskWindowTitle: getTicketInformation: nav not found');
+                return title + ' - ' + user;
             }
-        } else {
-            console.debug('ZendeskWindowTitle: getTicketInformation: div not found');
         }
-    } else {
-        console.debug('ZendeskWindowTitle: getTicketInformation: main panes not found');
+
+        return null;
     }
 
-    if (title && user) {
-        if (org) {
-            return title + ' - ' + user + ' - ' + org;
-        } else {
-            return title + ' - ' + user;
-        }
+    function getSection() {
+        // e.g. /agent/tickets/123 -> tickets/123, /agent/home/tickets -> home/tickets
+        var match = /^\/agent\/(.*?)\/*$/.exec(window.location.pathname);
+        return match ? match[1] : '';
     }
 
-    return null;
-}
+    function buildSuffix() {
+        var section = getSection();
+        if (!section) {
+            return '';
+        }
 
-function updateWindowTitle() {
-    "use strict";
-    if (!isSectionPresent) {
+        var ticket = /^tickets\/(\d+)/.exec(section);
+        if (ticket) {
+            var id = ticket[1];
+            var info = getTicketInformation(id);
+            return info ? ' - #' + id + ' - ' + info : ' - #' + id;
+        }
+
+        return ' - ' + section;
+    }
+
+    function updateWindowTitle() {
+        // zendesk shows a dummy title while loading
         if (window.document.title === 'Zendesk...') {
-            console.debug('ZendeskWindowTitle: dummy window title present');
-            return;
-        } else if (Zd.hasOwnProperty('section')) {
-            isSectionPresent = true;
-            initialWindowTitle = window.document.title;
-            console.debug('ZendeskWindowTitle: section present');
-        } else {
-            console.debug('ZendeskWindowTitle: section still missing');
             return;
         }
-    }
 
-    if (Zd.section !== currentSection) {
-        if (!Zd.section) {
-            currentSection = Zd.section;
-            console.debug('ZendeskWindowTitle: empty section');
-            window.document.title = initialWindowTitle;
-        } else if (Zd.section.indexOf('tickets/') === 0) {
-            var id = Zd.section.substring(8);
-            console.debug('ZendeskWindowTitle: focused ticket: ' + id);
-
-            var info = getTicketInformation();
-            if (info) {
-                currentSection = Zd.section;
-                window.document.title = initialWindowTitle + ' - #' + id + ' - ' + info;
-            } else {
-                // something did not check out, ensure that we query again
-                currentSection = null;
-                window.document.title = initialWindowTitle + ' - #' + id;
-            }
-        } else {
-            currentSection = Zd.section;
-            console.debug('ZendeskWindowTitle: focused: ' + Zd.section);
-            window.document.title = initialWindowTitle + ' - ' + currentSection;
+        // if the title is not the one we set last, zendesk changed it (navigation, notification count, ...)
+        if (window.document.title !== lastSetTitle) {
+            baseTitle = window.document.title;
         }
-    }
-}
 
-window.setInterval(updateWindowTitle, 1000);
+        // derived from scratch on every tick, so late loading data and edits are picked up
+        var desired = baseTitle + buildSuffix();
+        if (desired !== window.document.title) {
+            window.document.title = desired;
+        }
+        lastSetTitle = desired;
+    }
+
+    var baseTitle = null;
+    var lastSetTitle = null;
+
+    window.setInterval(updateWindowTitle, 1000);
+})();
