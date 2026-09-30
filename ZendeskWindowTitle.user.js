@@ -12,23 +12,6 @@
 (function () {
     "use strict";
 
-    function getTitle(id) {
-        // the tab list lives in the (react) header toolbar, the tab for the ticket is identified by its entity id
-        var tab = document.querySelector("[data-test-id='header-toolbar'] a[data-test-id='header-tab'][data-entity-id='" + id + "']");
-        if (!tab) {
-            console.debug('ZendeskWindowTitle: getTitle: tab not found');
-            return null;
-        }
-
-        var tabHeader = tab.querySelector("[data-test-id='header-tab-title']");
-        if (!tabHeader) {
-            console.debug('ZendeskWindowTitle: getTitle: tab title not found');
-            return null;
-        }
-
-        return tabHeader.innerText.trim();
-    }
-
     function getVisibleWorkspace() {
         // #main_panes is not unique anymore and cached workspaces are hidden via visibility/opacity, not display
         var workspaces = document.querySelectorAll('main#main_panes div.workspace');
@@ -42,7 +25,7 @@
         return null;
     }
 
-    function getTicketInformation(id) {
+    function getTicketInformation() {
         var workspace = getVisibleWorkspace();
         if (!workspace) {
             console.debug('ZendeskWindowTitle: getTicketInformation: workspace not found');
@@ -59,18 +42,14 @@
         var orgButton = nav.querySelector("[data-test-id='tabs-nav-item-organizations']");
         var user = userButton ? userButton.textContent.trim() : null;
         var org = orgButton ? orgButton.textContent.trim() : null;
-        var title = getTitle(id);
 
         if (!org) {
             console.debug('ZendeskWindowTitle: getTicketInformation: no org');
         }
 
-        if (title && user) {
-            if (org) {
-                return title + ' - ' + user + ' - ' + org;
-            } else {
-                return title + ' - ' + user;
-            }
+        if (user) {
+            // the subject is already part of zendesk's own window title
+            return org ? user + ' - ' + org : user;
         }
 
         return null;
@@ -91,7 +70,7 @@
         var ticket = /^tickets\/(\d+)/.exec(section);
         if (ticket) {
             var id = ticket[1];
-            var info = getTicketInformation(id);
+            var info = getTicketInformation();
             return info ? ' - #' + id + ' - ' + info : ' - #' + id;
         }
 
